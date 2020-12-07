@@ -1,8 +1,10 @@
 package com.company;
 
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -21,11 +23,31 @@ public class Main {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         long buffered = filter2DBuffered("images/pepe.jpg", "images/buffered.jpg", MEAN_FLTR_5);
         long openCVmat = filter2DMat("images/pepe.jpg", "images/mat.jpg", MEAN_FLTR_5);
+        long openCVFilter = filter2DopenCV("images/pepe.jpg", "images/opencv.jpg", MEAN_FLTR_5);
         System.out.println("Buffered took " + buffered + " ms.");
         System.out.println("OpenCV matrix took " + openCVmat + " ms.");
+        System.out.println("OpenCV filter2D took " + openCVFilter + " ms.");
 
     }
 
+    public static long filter2DopenCV(String inputFilename, String outputFilename, int[][] filter) {
+
+        Mat source = Imgcodecs.imread(inputFilename, Imgcodecs.IMREAD_GRAYSCALE);
+        Mat destination = new Mat(source.rows(),source.cols(),source.type());
+
+        Mat filterMat = new Mat(filter.length, filter[0].length, CvType.CV_32F);
+        long time = System.currentTimeMillis();
+        for(int i = 0; i < filter.length; i++) {
+            for(int j = 0; j < filter[0].length; j++) {
+                source.put(i, j, filter[i][j]);
+            }
+        }
+
+        Imgproc.filter2D(source,destination, -1, filterMat);
+        time = System.currentTimeMillis() - time;
+        Imgcodecs.imwrite(outputFilename,destination);
+        return time;
+    }
 
     public static long filter2DMat(String inputFilename, String outputFilename, int[][] filter) {
 
